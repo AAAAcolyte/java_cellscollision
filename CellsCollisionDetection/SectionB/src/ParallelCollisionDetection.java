@@ -1,12 +1,6 @@
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.IntStream;
 
 /**
  * You must implement the <code>checkObjects</code>  method.
@@ -34,7 +28,7 @@ public class ParallelCollisionDetection {
 
   /**
    * <p> Implement this method for Question 4 </p>
-   *
+   * <p>
    * // collision detection:
    * // We create a quadTree.
    * // We try to add all the 2D-objects to the quadTree.
@@ -49,46 +43,39 @@ public class ParallelCollisionDetection {
    * // that there is no collision between the points, and we halt and return
    * // true.
    */
-  private static boolean checkObjects(
-      PriorityQueueInterface<Object2D> sortedPoints, AABB region) {
+  private static boolean checkObjects(PriorityQueueInterface<Object2D> sortedPoints, AABB region) {
+    Boolean result = true;
+    QuadTree quadTree = new QuadTree(region, 4);
+    CollisionDetector[] threads = new CollisionDetector[3];
+    for(int i = 0; i < 3; i++){
+      threads[i] = new CollisionDetector(sortedPoints,region,quadTree);
+      threads[i].run();
+    }
+    for(int i = 0; i < 3; i++){
+      try{
+        threads[i].join();
+        System.out.println(threads[i].collision);
+      }
+      catch(InterruptedException e){
 
-
-    /* Spawn three threads that check for collisions in parallel. 
-     *
-     * The behavior of your parallel implementation has to be functionally equivalent to the
-     * sequential implementation in CollisionDetection. I.e., the value returned by
-     * this method has to be *systematically* the same you obtained with the sequential
-     * implementation in CollisionDetection
-     *
-     * You can modify the implementation of PriorityQueue, AABB and QuadTree, but
-     * the new interfaces have to be compatible with the current skeleton not to
-     * fail the tests (i.e., you can add methods or change the modifiers of existing
-     * fields and methods only if your changes keep the compatibility with the skeleton
-     * declarations).
-     *
-     * Feel free to add comments in the code to better explain your design choices,
-     * if you think they are necessary.
-     *
-     * You can add a brief comment (no more than 500 words) at the end of the method
-     * to explain if other synchronization choices where possible and why you preferred
-     * this one
-     */
-
-    
-    return false;
+      }
+    }
+    return !threads[0].result();
 
     /*
      * Justify here your implementation choice versus other valid alternatives
      */
   }
 
-
   /**
    * Reads 2D-Objects from a given input file and sort them in ascending order
    * with respect to their size using a PrioriyQueue
    */
+  class Control{
+
+  }
   private static AABB readAndSortObjects(String inputFile,
-      PriorityQueueInterface<Object2D> sortedPoints)
+                                         PriorityQueueInterface<Object2D> sortedPoints)
       throws FileNotFoundException, Exception, PQException {
     Scanner in = new Scanner(new File(inputFile));
     double minX, maxX, minY, maxY;

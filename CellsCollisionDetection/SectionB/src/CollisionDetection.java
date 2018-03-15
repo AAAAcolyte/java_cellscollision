@@ -26,7 +26,7 @@ public class CollisionDetection {
 
   /**
    * <p> Implement this method for Question 4 </p>
-   *
+   * <p>
    * // collision detection:
    * // We create a quadTree.
    * // We try to add all the 2D-objects to the quadTree.
@@ -36,7 +36,7 @@ public class CollisionDetection {
    * // 2. by querying the quadTree, we try to find if there is any existing 2D-object
    * // within the current point's safety region
    * //   a. if there is none, then we add the point to the quad tree
-   * //   b. otherwise, a collision is detected and we halt and return false.
+   * //   b. odtherwise, a collision is detected and we halt and return false.
    * // 3. if we successfully add all the points to the quad-tree, then we are sure
    * // that there is no collision between the points, and we halt and return
    * // true.
@@ -44,6 +44,22 @@ public class CollisionDetection {
   private static boolean checkObjects(
       PriorityQueueInterface<Object2D> sortedPoints, AABB region) {
     // TODO: Implement this method for Question 4
+    QuadTree quadTree = new QuadTree(region, 4);
+    while (!sortedPoints.isEmpty()) {
+      Object2D toAdd = sortedPoints.peek();
+      sortedPoints.remove();
+      Point2D leftTop = new Point2D(toAdd.getCenter().x - toAdd.getSize(),
+          toAdd.getCenter().y - toAdd.getSize());
+      Point2D rightBottom = new Point2D(toAdd.getCenter().x + toAdd.getSize
+          (), toAdd.getCenter().y + toAdd.getSize());
+      AABB safetyRegion = new AABB(leftTop, rightBottom);
+      ListInterface<Object2D> list = quadTree.queryRegion(safetyRegion);
+      if(!list.isEmpty()){
+        return false;
+      }else{
+        quadTree.add(toAdd);
+      }
+    }
     return true;
   }
 
@@ -53,7 +69,7 @@ public class CollisionDetection {
    * with respect to their size using a PrioriyQueue
    */
   private static AABB readAndSortObjects(String inputFile,
-      PriorityQueueInterface<Object2D> sortedPoints)
+                                         PriorityQueueInterface<Object2D> sortedPoints)
       throws FileNotFoundException, Exception, PQException {
     Scanner in = new Scanner(new File(inputFile));
     double minX, maxX, minY, maxY;

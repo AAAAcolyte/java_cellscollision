@@ -49,7 +49,7 @@ public class PriorityQueue<T extends Comparable<T>> implements
    * @param newEntry the new element to add to the priority queue
    * @throws an exception if the priority queue is full
    */
-  public void add(T newEntry) throws PQException {
+  public synchronized void add(T newEntry) throws PQException {
     if (size < max_size) {
       items[size] = newEntry;
       int place = size;
@@ -69,11 +69,28 @@ public class PriorityQueue<T extends Comparable<T>> implements
 
   /**
    * <p> Implement this method for Question 1 </p>
-   *
+   * <p>
    * Removes the element with highest priority.
    */
-  public void remove() {
+  public synchronized void remove() {
     // TODO: Implement this method for Question 1
+    if(size <= 0)
+      return;
+    if(size == 1){
+      size--;
+      return;
+    }
+    if (size > 1) {
+      items[0] = items[size - 1];
+    }
+    size--;
+    PQRebuild(0);
+  }
+
+  public synchronized T poll(){
+    T toreturn = items[0];
+    remove();
+    return toreturn;
   }
 
   /**
@@ -81,6 +98,29 @@ public class PriorityQueue<T extends Comparable<T>> implements
    */
   private void PQRebuild(int root) {
     // TODO: Implement this method for Question 1
+    int left = findLeft(root);
+    int right = findRight(root);
+    int smallest = root;
+    if (left < size && items[left].compareTo(items[root]) < 0) {
+      smallest = left;
+    }
+    if (right < size && items[right].compareTo(items[smallest]) < 0) {
+      smallest = right;
+    }
+    if (smallest != root) {
+      T temp = items[root];
+      items[root] = items[smallest];
+      items[smallest] = temp;
+      PQRebuild(smallest);
+    }
+  }
+
+  private int findLeft(int root) {
+    return root * 2 + 1;
+  }
+
+  private int findRight(int root) {
+    return root * 2 + 2;
   }
 
 
